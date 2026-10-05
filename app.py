@@ -70,7 +70,9 @@ def search_cars():
             "status": "error",
             "message": str(e)
         }), 500
-
+@app.route("/routes")
+def routes():
+    return jsonify([str(rule) for rule in app.url_map.iter_rules()])
 
 if __name__ == "__main__":
     app.run(

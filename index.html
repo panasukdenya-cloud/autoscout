@@ -1,355 +1,241 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AutoScout</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoScout</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1115;
+      color: white;
+    }
 
-<style>
-* {
-  box-sizing: border-box;
-}
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 18px;
+    }
 
-body {
-  margin: 0;
-  background: #08090c;
-  color: white;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-}
+    h1 {
+      margin: 0 0 18px;
+      font-size: 28px;
+    }
 
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 22px 18px 120px;
-}
+    .card {
+      background: #191c22;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
 
-.logo {
-  font-size: 30px;
-  font-weight: 800;
-  margin-bottom: 35px;
-}
+    label {
+      display: block;
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
 
-.logo span {
-  color: #ff2b35;
-}
+    input, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #111318;
+      color: white;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
 
-h1 {
-  font-size: 30px;
-  margin: 0 0 8px;
-}
+    button {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: #ff3b30;
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+    }
 
-.subtitle {
-  color: #92939a;
-  font-size: 17px;
-  margin-bottom: 28px;
-}
+    .result {
+      background: #191c22;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: 14px;
+    }
 
-.card {
-  background: #141519;
-  border: 1px solid #303139;
-  border-radius: 22px;
-  padding: 18px;
-}
+    .result img {
+      width: 100%;
+      display: block;
+    }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
+    .info {
+      padding: 14px;
+    }
 
-label {
-  display: block;
-  color: #a9aab1;
-  font-size: 15px;
-  margin-bottom: 7px;
-}
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
 
-select, input {
-  width: 100%;
-  height: 55px;
-  border: 1px solid #3b3c44;
-  border-radius: 14px;
-  background: #202126;
-  color: white;
-  padding: 0 15px;
-  font-size: 17px;
-  outline: none;
-}
+    .price {
+      font-size: 22px;
+      font-weight: 700;
+    }
 
-.row {
-  display: flex;
-}
+    .discount {
+      display: inline-block;
+      margin-top: 8px;
+      background: #2a1d1d;
+      color: #ff6b61;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
 
-.row input {
-  border-radius: 0;
-}
+    .meta {
+      margin-top: 8px;
+      color: #bbb;
+      font-size: 14px;
+      line-height: 1.5;
+    }
 
-.row input:first-child {
-  border-radius: 14px 0 0 14px;
-}
+    .open {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      padding: 12px;
+      background: #2c2f36;
+      border-radius: 10px;
+      color: white;
+      text-decoration: none;
+    }
 
-.row input:last-child {
-  border-radius: 0 14px 14px 0;
-  border-left: 0;
-}
-
-.section {
-  margin-top: 20px;
-}
-
-.big-select {
-  width: 100%;
-}
-
-.percent-wrap {
-  position: relative;
-}
-
-.percent-wrap input {
-  padding-right: 50px;
-}
-
-.percent {
-  position: absolute;
-  right: 18px;
-  top: 15px;
-  color: #92939a;
-  font-size: 22px;
-}
-
-.help {
-  color: #96979e;
-  line-height: 1.5;
-  margin: 12px 0 20px;
-  font-size: 14px;
-}
-
-button {
-  width: 100%;
-  border: 0;
-  border-radius: 15px;
-  height: 60px;
-  background: #ff2530;
-  color: white;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-button:active {
-  transform: scale(.98);
-}
-
-.bottom {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #0b0c10;
-  border-top: 1px solid #28292e;
-  display: flex;
-  justify-content: space-around;
-  padding: 13px 5px 25px;
-}
-
-.nav {
-  text-align: center;
-  color: #85868d;
-  font-size: 13px;
-}
-
-.nav.active {
-  color: white;
-}
-
-.icon {
-  font-size: 25px;
-  margin-bottom: 4px;
-}
-
-@media(max-width:420px) {
-  .container {
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-
-  h1 {
-    font-size: 27px;
-  }
-}
-</style>
+    #status {
+      margin-top: 14px;
+      color: #aaa;
+      text-align: center;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <h1>🔥 Авто нижче ринку</h1>
 
-<div class="container">
+    <div class="card">
+      <label>Марка ID — можна залишити порожнім</label>
+      <input id="mark" placeholder="Наприклад 9 = BMW" />
 
-  <div class="logo">
-    AUTO<span>SCOUT</span>
-  </div>
+      <label>Модель ID — можна залишити порожнім</label>
+      <input id="model" placeholder="ID моделі" />
 
-  <h1>🔥 Авто нижче ринку</h1>
-  <div class="subtitle">
-    Налаштуй пошук — AutoScout знайде вигідні пропозиції
-  </div>
+      <label>Рік від</label>
+      <input id="yearFrom" type="number" value="2018" />
 
-  <div class="card">
+      <label>Рік до</label>
+      <input id="yearTo" type="number" value="2021" />
 
-    <div class="grid">
-
-      <div>
-        <label>Марка</label>
-        <select id="brand" onchange="updateModels()">
-          <option value="">Всі марки</option>
-          <option>BMW</option>
-          <option>Audi</option>
-          <option>Mercedes-Benz</option>
-          <option>Volkswagen</option>
-          <option>Tesla</option>
-          <option>Skoda</option>
-          <option>Toyota</option>
-          <option>Ford</option>
-          <option>Renault</option>
-          <option>Hyundai</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Модель</label>
-        <select id="model">
-          <option value="">Всі моделі</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Ціна, $</label>
-        <div class="row">
-          <input id="priceFrom" type="number" placeholder="Від">
-          <input id="priceTo" type="number" placeholder="До">
-        </div>
-      </div>
-
-      <div>
-        <label>Рік</label>
-        <div class="row">
-          <input id="yearFrom" type="number" placeholder="Від">
-          <input id="yearTo" type="number" placeholder="До">
-        </div>
-      </div>
-
-    </div>
-
-    <div class="section">
-      <label>Область</label>
-      <select id="region" class="big-select">
-        <option>Вся Україна</option>
-        <option>Вінницька</option>
-        <option>Волинська</option>
-        <option>Дніпропетровська</option>
-        <option>Житомирська</option>
-        <option>Закарпатська</option>
-        <option>Запорізька</option>
-        <option>Івано-Франківська</option>
-        <option>Київська</option>
-        <option>Львівська</option>
-        <option>Одеська</option>
-        <option>Полтавська</option>
-        <option>Рівненська</option>
-        <option>Тернопільська</option>
-        <option>Харківська</option>
-        <option>Хмельницька</option>
-        <option>Черкаська</option>
-        <option>Чернівецька</option>
-      </select>
-    </div>
-
-    <div class="section">
       <label>Мінімально нижче ринку, %</label>
+      <input id="below" type="number" value="15" />
 
-      <div class="percent-wrap">
-        <input id="discount" type="number" value="15" min="1" max="50">
-        <div class="percent">%</div>
-      </div>
-
-      <div class="help">
-        Наприклад, якщо середня ринкова ціна авто $20 000,
-        при 15% AutoScout покаже пропозиції приблизно до $17 000.
-      </div>
+      <button onclick="findDeals()">🔥 Знайти вигідні авто</button>
     </div>
 
-    <button onclick="createSearch()">
-      🔥 Створити пошук
-    </button>
-
-  </div>
-</div>
-
-<div class="bottom">
-  <div class="nav active">
-    <div class="icon">🔎</div>
-    Фільтри
+    <div id="status"></div>
+    <div id="results"></div>
   </div>
 
-  <div class="nav">
-    <div class="icon">♡</div>
-    Мої пошуки
-  </div>
+  <script>
+    const API = "https://autoscout-4ojj.onrender.com";
 
-  <div class="nav">
-    <div class="icon">⚙️</div>
-    Налаштування
-  </div>
-</div>
+    async function findDeals() {
+      const mark = document.getElementById("mark").value.trim();
+      const model = document.getElementById("model").value.trim();
+      const yearFrom = document.getElementById("yearFrom").value;
+      const yearTo = document.getElementById("yearTo").value;
+      const below = document.getElementById("below").value;
 
-<script>
-const models = {
-  "BMW": ["3 Series", "5 Series", "X1", "X3", "X5", "X6"],
-  "Audi": ["A3", "A4", "A5", "A6", "Q3", "Q5", "Q7", "e-tron"],
-  "Mercedes-Benz": ["C-Class", "E-Class", "GLC", "GLE"],
-  "Volkswagen": ["Golf", "Passat", "Tiguan", "Touareg"],
-  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
-  "Skoda": ["Octavia", "Superb", "Kodiaq"],
-  "Toyota": ["Camry", "Corolla", "RAV4"],
-  "Ford": ["Focus", "Fusion", "Escape"],
-  "Renault": ["Megane", "Zoe", "Kadjar"],
-  "Hyundai": ["Kona", "Tucson", "Santa Fe"]
-};
+      const params = new URLSearchParams();
 
-function updateModels() {
-  const brand = document.getElementById("brand").value;
-  const model = document.getElementById("model");
+      if (mark) params.append("mark", mark);
+      if (model) params.append("model", model);
 
-  model.innerHTML = '<option value="">Всі моделі</option>';
+      params.append("year_from", yearFrom);
+      params.append("year_to", yearTo);
+      params.append("below", below);
+      params.append("limit", "20");
 
-  if (models[brand]) {
-    models[brand].forEach(name => {
-      const option = document.createElement("option");
-      option.textContent = name;
-      option.value = name;
-      model.appendChild(option);
-    });
-  }
-}
+      document.getElementById("status").innerText = "Шукаю...";
+      document.getElementById("results").innerHTML = "";
 
-function createSearch() {
-  const data = {
-    brand: document.getElementById("brand").value,
-    model: document.getElementById("model").value,
-    priceFrom: document.getElementById("priceFrom").value,
-    priceTo: document.getElementById("priceTo").value,
-    yearFrom: document.getElementById("yearFrom").value,
-    yearTo: document.getElementById("yearTo").value,
-    region: document.getElementById("region").value,
-    discount: document.getElementById("discount").value
-  };
+      try {
+        const response = await fetch(
+          `${API}/api/deals?${params.toString()}`
+        );
 
-  if (window.Telegram && Telegram.WebApp) {
-    Telegram.WebApp.sendData(JSON.stringify(data));
-  } else {
-    alert("✅ Пошук створено! Наступним кроком підключимо AUTO.RIA.");
-  }
-}
-</script>
+        const data = await response.json();
 
+        if (data.status !== "ok") {
+          document.getElementById("status").innerText =
+            "Помилка: " + (data.message || "невідома");
+          return;
+        }
+
+        document.getElementById("status").innerText =
+          `Перевірено: ${data.checked} | Знайдено: ${data.deals_found}`;
+
+        if (!data.deals || data.deals.length === 0) {
+          document.getElementById("results").innerHTML =
+            "<div class='card'>Нічого нижче заданого % не знайдено.</div>";
+          return;
+        }
+
+        data.deals.forEach(car => {
+          const el = document.createElement("div");
+          el.className = "result";
+
+          el.innerHTML = `
+            ${car.photo ? `<img src="${car.photo}" alt="">` : ""}
+
+            <div class="info">
+              <div class="title">${car.title || "Авто"}</div>
+
+              <div class="price">
+                $${Number(car.price_usd).toLocaleString()}
+              </div>
+
+              <div class="discount">
+                🔥 −${car.below_market_percent}% нижче ринку
+              </div>
+
+              <div class="meta">
+                Ринок: $${Number(car.market_price).toLocaleString()}<br>
+                Рік: ${car.year || "-"}<br>
+                Пробіг: ${car.race || "-"}<br>
+                Місто: ${car.city || "-"}
+              </div>
+
+              ${car.link
+                ? `<a class="open" href="${car.link}" target="_blank">
+                    Відкрити на AUTO.RIA
+                  </a>`
+                : ""
+              }
+            </div>
+          `;
+
+          document.getElementById("results").appendChild(el);
+        });
+
+      } catch (e) {
+        document.getElementById("status").innerText =
+          "Помилка з'єднання з сервером";
+      }
+    }
+  </script>
 </body>
 </html>

@@ -6,60 +6,350 @@
 <title>AutoScout</title>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: white;
-    padding: 20px;
+  margin: 0;
+  background: #08090c;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 22px 18px 120px;
+}
+
+.logo {
+  font-size: 30px;
+  font-weight: 800;
+  margin-bottom: 35px;
+}
+
+.logo span {
+  color: #ff2b35;
 }
 
 h1 {
-    text-align: center;
+  font-size: 30px;
+  margin: 0 0 8px;
 }
 
-select, input, button {
-    width: 100%;
-    padding: 15px;
-    margin: 7px 0;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-    box-sizing: border-box;
+.subtitle {
+  color: #92939a;
+  font-size: 17px;
+  margin-bottom: 28px;
+}
+
+.card {
+  background: #141519;
+  border: 1px solid #303139;
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+label {
+  display: block;
+  color: #a9aab1;
+  font-size: 15px;
+  margin-bottom: 7px;
+}
+
+select, input {
+  width: 100%;
+  height: 55px;
+  border: 1px solid #3b3c44;
+  border-radius: 14px;
+  background: #202126;
+  color: white;
+  padding: 0 15px;
+  font-size: 17px;
+  outline: none;
+}
+
+.row {
+  display: flex;
+}
+
+.row input {
+  border-radius: 0;
+}
+
+.row input:first-child {
+  border-radius: 14px 0 0 14px;
+}
+
+.row input:last-child {
+  border-radius: 0 14px 14px 0;
+  border-left: 0;
+}
+
+.section {
+  margin-top: 20px;
+}
+
+.big-select {
+  width: 100%;
+}
+
+.percent-wrap {
+  position: relative;
+}
+
+.percent-wrap input {
+  padding-right: 50px;
+}
+
+.percent {
+  position: absolute;
+  right: 18px;
+  top: 15px;
+  color: #92939a;
+  font-size: 22px;
+}
+
+.help {
+  color: #96979e;
+  line-height: 1.5;
+  margin: 12px 0 20px;
+  font-size: 14px;
 }
 
 button {
-    background: #2481cc;
-    color: white;
-    font-weight: bold;
-    margin-top: 15px;
+  width: 100%;
+  border: 0;
+  border-radius: 15px;
+  height: 60px;
+  background: #ff2530;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+.bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #0b0c10;
+  border-top: 1px solid #28292e;
+  display: flex;
+  justify-content: space-around;
+  padding: 13px 5px 25px;
+}
+
+.nav {
+  text-align: center;
+  color: #85868d;
+  font-size: 13px;
+}
+
+.nav.active {
+  color: white;
+}
+
+.icon {
+  font-size: 25px;
+  margin-bottom: 4px;
+}
+
+@media(max-width:420px) {
+  .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  h1 {
+    font-size: 27px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<h1>🚗 AutoScout</h1>
+<div class="container">
 
-<select>
-    <option>Оберіть марку</option>
-    <option>BMW</option>
-    <option>Audi</option>
-    <option>Mercedes-Benz</option>
-    <option>Volkswagen</option>
-    <option>Tesla</option>
-</select>
+  <div class="logo">
+    AUTO<span>SCOUT</span>
+  </div>
 
-<input type="text" placeholder="Модель">
+  <h1>🔥 Авто нижче ринку</h1>
+  <div class="subtitle">
+    Налаштуй пошук — AutoScout знайде вигідні пропозиції
+  </div>
 
-<input type="number" placeholder="Рік від">
+  <div class="card">
 
-<input type="number" placeholder="Рік до">
+    <div class="grid">
 
-<input type="number" placeholder="Ціна від, $">
+      <div>
+        <label>Марка</label>
+        <select id="brand" onchange="updateModels()">
+          <option value="">Всі марки</option>
+          <option>BMW</option>
+          <option>Audi</option>
+          <option>Mercedes-Benz</option>
+          <option>Volkswagen</option>
+          <option>Tesla</option>
+          <option>Skoda</option>
+          <option>Toyota</option>
+          <option>Ford</option>
+          <option>Renault</option>
+          <option>Hyundai</option>
+        </select>
+      </div>
 
-<input type="number" placeholder="Ціна до, $">
+      <div>
+        <label>Модель</label>
+        <select id="model">
+          <option value="">Всі моделі</option>
+        </select>
+      </div>
 
-<button>🔎 Знайти автомобілі</button>
+      <div>
+        <label>Ціна, $</label>
+        <div class="row">
+          <input id="priceFrom" type="number" placeholder="Від">
+          <input id="priceTo" type="number" placeholder="До">
+        </div>
+      </div>
+
+      <div>
+        <label>Рік</label>
+        <div class="row">
+          <input id="yearFrom" type="number" placeholder="Від">
+          <input id="yearTo" type="number" placeholder="До">
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section">
+      <label>Область</label>
+      <select id="region" class="big-select">
+        <option>Вся Україна</option>
+        <option>Вінницька</option>
+        <option>Волинська</option>
+        <option>Дніпропетровська</option>
+        <option>Житомирська</option>
+        <option>Закарпатська</option>
+        <option>Запорізька</option>
+        <option>Івано-Франківська</option>
+        <option>Київська</option>
+        <option>Львівська</option>
+        <option>Одеська</option>
+        <option>Полтавська</option>
+        <option>Рівненська</option>
+        <option>Тернопільська</option>
+        <option>Харківська</option>
+        <option>Хмельницька</option>
+        <option>Черкаська</option>
+        <option>Чернівецька</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <label>Мінімально нижче ринку, %</label>
+
+      <div class="percent-wrap">
+        <input id="discount" type="number" value="15" min="1" max="50">
+        <div class="percent">%</div>
+      </div>
+
+      <div class="help">
+        Наприклад, якщо середня ринкова ціна авто $20 000,
+        при 15% AutoScout покаже пропозиції приблизно до $17 000.
+      </div>
+    </div>
+
+    <button onclick="createSearch()">
+      🔥 Створити пошук
+    </button>
+
+  </div>
+</div>
+
+<div class="bottom">
+  <div class="nav active">
+    <div class="icon">🔎</div>
+    Фільтри
+  </div>
+
+  <div class="nav">
+    <div class="icon">♡</div>
+    Мої пошуки
+  </div>
+
+  <div class="nav">
+    <div class="icon">⚙️</div>
+    Налаштування
+  </div>
+</div>
+
+<script>
+const models = {
+  "BMW": ["3 Series", "5 Series", "X1", "X3", "X5", "X6"],
+  "Audi": ["A3", "A4", "A5", "A6", "Q3", "Q5", "Q7", "e-tron"],
+  "Mercedes-Benz": ["C-Class", "E-Class", "GLC", "GLE"],
+  "Volkswagen": ["Golf", "Passat", "Tiguan", "Touareg"],
+  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
+  "Skoda": ["Octavia", "Superb", "Kodiaq"],
+  "Toyota": ["Camry", "Corolla", "RAV4"],
+  "Ford": ["Focus", "Fusion", "Escape"],
+  "Renault": ["Megane", "Zoe", "Kadjar"],
+  "Hyundai": ["Kona", "Tucson", "Santa Fe"]
+};
+
+function updateModels() {
+  const brand = document.getElementById("brand").value;
+  const model = document.getElementById("model");
+
+  model.innerHTML = '<option value="">Всі моделі</option>';
+
+  if (models[brand]) {
+    models[brand].forEach(name => {
+      const option = document.createElement("option");
+      option.textContent = name;
+      option.value = name;
+      model.appendChild(option);
+    });
+  }
+}
+
+function createSearch() {
+  const data = {
+    brand: document.getElementById("brand").value,
+    model: document.getElementById("model").value,
+    priceFrom: document.getElementById("priceFrom").value,
+    priceTo: document.getElementById("priceTo").value,
+    yearFrom: document.getElementById("yearFrom").value,
+    yearTo: document.getElementById("yearTo").value,
+    region: document.getElementById("region").value,
+    discount: document.getElementById("discount").value
+  };
+
+  if (window.Telegram && Telegram.WebApp) {
+    Telegram.WebApp.sendData(JSON.stringify(data));
+  } else {
+    alert("✅ Пошук створено! Наступним кроком підключимо AUTO.RIA.");
+  }
+}
+</script>
 
 </body>
 </html>

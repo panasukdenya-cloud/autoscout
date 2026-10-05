@@ -7,16 +7,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 app = Flask(__name__)
 
 RIA_API_KEY = os.environ.get("RIA_API_KEY")
-RIA_USER_ID = os.environ.get("RIA_USER_ID")
 RIA_BASE = "https://developers.ria.com"
 
-# Кеш ринкової ціни, щоб не витрачати зайві запити
+# Кеш ринкових цін — 30 хвилин
 MARKET_CACHE = {}
-MARKET_CACHE_SECONDS = 15 * 60
+MARKET_CACHE_TTL = 1800
 
 
 @app.after_request
-def add_cors_headers(response):
+def cors(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
@@ -30,77 +29,95 @@ def ria_get(path, params=None):
     params = params or {}
     params["api_key"] = RIA_API_KEY
 
-    response = requests.get(
-        f"{RIA_BASE}{path}",
+    r = requests.get(
+        RIA_BASE + path,
         params=params,
-        timeout=25
+        timeout=30
     )
 
-    response.raise_for_status()
-    return response.json()
+    r.raise_for_status()
+    return r.json()
 
 
-def get_car_info(auto_id):
+def get_car(auto_id):
     info = ria_get(
         "/auto/info",
         {"auto_id": auto_id}
     )
 
-    link = info.get("linkToView")
+    auto_data = info.get("autoData", {})
 
+    link = info.get("linkToView")
     if link and link.startswith("/"):
         link = "https://auto.ria.com" + link
 
     return {
         "id": str(auto_id),
+
         "title": info.get("title"),
+
+        "mark": info.get("markName"),
+        "mark_id": info.get("markId"),
+
+        "model": info.get("modelName"),
+        "model_id": info.get("modelId"),
+
+        "year": auto_data.get("year"),
+
         "price_usd": info.get("USD"),
-        "year": info.get("autoData", {}).get("year"),
-        "race": info.get("autoData", {}).get("race"),
+
+        "race": auto_data.get("race"),
+        "race_int": auto_data.get("raceInt"),
+
+        "fuel": auto_data.get("fuelName"),
+        "gearbox": auto_data.get("gearboxName"),
+
         "city": info.get("locationCityName"),
-        "photo": info.get("photoData", {}).get("seoLinkM"),
+
+        "photo": (
+            info.get("photoData", {})
+            .get("seoLinkM")
+        ),
+
         "link": link
     }
 
 
-def get_market_price(mark, model, year):
-    cache_key = f"{mark}:{model}:{year}"
+def get_market_price(mark_id, model_id, year):
+    key = f"{mark_id}:{model_id}:{year}"
 
-    cached = MARKET_CACHE.get(cache_key)
+    cached = MARKET_CACHE.get(key)
 
     if cached:
-        age = time.time() - cached["time"]
-
-        if age < MARKET_CACHE_SECONDS:
+        if time.time() - cached["time"] < MARKET_CACHE_TTL:
             return cached["data"]
-
-    params = {
-        "marka_id": mark,
-        "model_id": model,
-        "yers": year
-    }
 
     data = ria_get(
         "/auto/average_price",
-        params
+        {
+            "marka_id": mark_id,
+            "model_id": model_id,
+            "yers": year
+        }
     )
 
     percentiles = data.get("percentiles", {})
 
     median = (
         percentiles.get("50.0")
-        or percentiles.get(50.0)
         or percentiles.get("50")
+        or percentiles.get(50)
+        or percentiles.get(50.0)
     )
 
     result = {
         "median": median,
         "average": data.get("arithmeticMean"),
-        "interquartile_average": data.get("interQuartileMean"),
-        "sample_size": data.get("total")
+        "interquartile": data.get("interQuartileMean"),
+        "total": data.get("total")
     }
 
-    MARKET_CACHE[cache_key] = {
+    MARKET_CACHE[key] = {
         "time": time.time(),
         "data": result
     }
@@ -116,115 +133,12 @@ def home():
     })
 
 
-@app.route("/api/search")
-def search():
-    mark = request.args.get("mark")
-    model = request.args.get("model")
-
-    year_from = request.args.get("year_from")
-    year_to = request.args.get("year_to")
-
-    price_from = request.args.get("price_from")
-    price_to = request.args.get("price_to")
-
-    region = request.args.get("region")
-
-    page = request.args.get("page", 0, type=int)
-
-    if not mark:
-        return jsonify({
-            "status": "error",
-            "message": "mark is required"
-        }), 400
-
-    params = {
-        "category_id": 1,
-        "marka_id[0]": mark,
-        "countpage": 20,
-        "page": page
-    }
-
-    if model:
-        params["model_id[0]"] = model
-
-    if year_from:
-        params["s_yers[0]"] = year_from
-
-    if year_to:
-        params["po_yers[0]"] = year_to
-
-    if price_from:
-        params["price_ot"] = price_from
-
-    if price_to:
-        params["price_do"] = price_to
-
-    if region:
-        params["state[0]"] = region
-
-    try:
-        data = ria_get("/auto/search", params)
-
-        search_result = (
-            data.get("result", {})
-            .get("search_result", {})
-        )
-
-        ids = search_result.get("ids", [])
-
-        return jsonify({
-            "status": "ok",
-            "ids": ids,
-            "total_found": search_result.get("count", 0),
-            "page": page,
-            "per_page": 20,
-            "next_page": page + 1 if ids else None
-        })
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-
-
 @app.route("/api/car/<auto_id>")
 def car(auto_id):
     try:
         return jsonify({
             "status": "ok",
-            "car": get_car_info(auto_id)
-        })
-
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-
-
-@app.route("/api/market")
-def market():
-    mark = request.args.get("mark")
-    model = request.args.get("model")
-    year = request.args.get("year")
-
-    if not mark or not model or not year:
-        return jsonify({
-            "status": "error",
-            "message": "mark, model and year are required"
-        }), 400
-
-    try:
-        market_data = get_market_price(
-            mark,
-            model,
-            year
-        )
-
-        return jsonify({
-            "status": "ok",
-            "market": market_data
+            "car": get_car(auto_id)
         })
 
     except Exception as e:
@@ -236,6 +150,8 @@ def market():
 
 @app.route("/api/deals")
 def deals():
+
+    # НЕОБОВ'ЯЗКОВІ
     mark = request.args.get("mark")
     model = request.args.get("model")
 
@@ -247,6 +163,7 @@ def deals():
 
     region = request.args.get("region")
 
+    # Наприклад 15 = мінімум 15% нижче ринку
     below = request.args.get(
         "below",
         15,
@@ -267,82 +184,101 @@ def deals():
 
     limit = max(1, min(limit, 20))
 
-    if not mark or not model:
-        return jsonify({
-            "status": "error",
-            "message": "mark and model are required"
-        }), 400
-
-    search_params = {
+    params = {
         "category_id": 1,
-        "marka_id[0]": mark,
-        "model_id[0]": model,
         "countpage": limit,
         "page": page
     }
 
+    # Якщо марка обрана
+    if mark:
+        params["marka_id[0]"] = mark
+
+    # Якщо модель обрана
+    if model:
+        params["model_id[0]"] = model
+
     if year_from:
-        search_params["s_yers[0]"] = year_from
+        params["s_yers[0]"] = year_from
 
     if year_to:
-        search_params["po_yers[0]"] = year_to
+        params["po_yers[0]"] = year_to
 
     if price_from:
-        search_params["price_ot"] = price_from
+        params["price_ot"] = price_from
 
     if price_to:
-        search_params["price_do"] = price_to
+        params["price_do"] = price_to
 
     if region:
-        search_params["state[0]"] = region
+        params["state[0]"] = region
 
     try:
+
         search_data = ria_get(
             "/auto/search",
-            search_params
+            params
         )
 
         search_result = (
-            search_data.get("result", {})
+            search_data
+            .get("result", {})
             .get("search_result", {})
         )
 
-        ids = search_result.get("ids", [])[:limit]
+        ids = search_result.get(
+            "ids",
+            []
+        )[:limit]
 
         cars = []
 
-        # Отримуємо дані авто паралельно — значно швидше
+        # Отримуємо дані оголошень паралельно
         with ThreadPoolExecutor(max_workers=8) as executor:
-            futures = {
-                executor.submit(get_car_info, auto_id): auto_id
+
+            futures = [
+                executor.submit(
+                    get_car,
+                    auto_id
+                )
                 for auto_id in ids
-            }
+            ]
 
             for future in as_completed(futures):
+
                 try:
-                    cars.append(future.result())
+                    car_data = future.result()
+                    cars.append(car_data)
                 except Exception:
                     pass
 
-        deals_list = []
+        deals_found = []
 
         for car in cars:
-            price = car.get("price_usd")
-            year = car.get("year")
 
-            if not price or not year:
+            mark_id = car.get("mark_id")
+            model_id = car.get("model_id")
+            year = car.get("year")
+            price = car.get("price_usd")
+
+            if not all([
+                mark_id,
+                model_id,
+                year,
+                price
+            ]):
                 continue
 
             try:
-                market_data = get_market_price(
-                    mark,
-                    model,
+                market = get_market_price(
+                    mark_id,
+                    model_id,
                     year
                 )
             except Exception:
                 continue
 
-            market_price = market_data.get("median")
+            market_price = market.get("median")
 
             if not market_price:
                 continue
@@ -350,7 +286,7 @@ def deals():
             try:
                 price = float(price)
                 market_price = float(market_price)
-            except (TypeError, ValueError):
+            except (ValueError, TypeError):
                 continue
 
             if market_price <= 0:
@@ -359,29 +295,45 @@ def deals():
             discount = (
                 (market_price - price)
                 / market_price
-                * 100
-            )
+            ) * 100
 
-            discount = round(discount, 1)
+            discount = round(
+                discount,
+                1
+            )
 
             if discount < below:
                 continue
 
-            car["market_price"] = round(market_price)
-            car["below_market_percent"] = discount
-            car["market_sample_size"] = market_data.get(
-                "sample_size"
+            car["market_price"] = round(
+                market_price
             )
 
-            deals_list.append(car)
+            car["below_market_percent"] = discount
 
-        deals_list.sort(
-            key=lambda x: x["below_market_percent"],
+            car["market_ads_count"] = market.get(
+                "total"
+            )
+
+            deals_found.append(car)
+
+        # Найвигідніші зверху
+        deals_found.sort(
+            key=lambda x:
+            x["below_market_percent"],
             reverse=True
         )
 
         return jsonify({
+
             "status": "ok",
+
+            "mode": (
+                "selected_car"
+                if mark or model
+                else "all_cars"
+            ),
+
             "filters": {
                 "mark": mark,
                 "model": model,
@@ -392,18 +344,28 @@ def deals():
                 "region": region,
                 "below_percent": below
             },
-            "total_found_ria": search_result.get(
-                "count",
-                0
-            ),
-            "checked": len(cars),
-            "deals_found": len(deals_list),
-            "deals": deals_list,
-            "page": page,
-            "next_page": page + 1 if ids else None
+
+            "total_found_ria":
+                search_result.get("count", 0),
+
+            "checked":
+                len(cars),
+
+            "deals_found":
+                len(deals_found),
+
+            "deals":
+                deals_found,
+
+            "page":
+                page,
+
+            "next_page":
+                page + 1 if ids else None
         })
 
     except Exception as e:
+
         return jsonify({
             "status": "error",
             "message": str(e)
@@ -413,12 +375,17 @@ def deals():
 @app.route("/routes")
 def routes():
     return jsonify(
-        [str(rule) for rule in app.url_map.iter_rules()]
+        [str(x) for x in app.url_map.iter_rules()]
     )
 
 
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000))
+        port=int(
+            os.environ.get(
+                "PORT",
+                10000
+            )
+        )
     )

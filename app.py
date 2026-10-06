@@ -371,8 +371,58 @@ def deals():
             "message": str(e)
         }), 500
 
+# Налаштування автоматичного моніторингу
+MONITOR_SETTINGS = {
+    "enabled": True,
+    "below": 20,
+    "year_from": 1990,
+    "year_to": 2026,
+    "region": None,
+    "mark": None,
+    "model": None
+}
 
-@app.route("/routes")
+
+@app.route("/api/monitor-settings", methods=["GET"])
+def get_monitor_settings():
+    return jsonify({
+        "status": "ok",
+        "settings": MONITOR_SETTINGS
+    })
+
+
+@app.route("/api/monitor-settings", methods=["POST"])
+def save_monitor_settings():
+    data = request.get_json(silent=True) or {}
+
+    below = data.get("below", 20)
+
+    try:
+        below = float(below)
+    except:
+        return jsonify({
+            "status": "error",
+            "message": "Невірний відсоток"
+        }), 400
+
+    if below < 10 or below > 30:
+        return jsonify({
+            "status": "error",
+            "message": "Відсоток має бути від 10 до 30"
+        }), 400
+
+    MONITOR_SETTINGS["below"] = below
+    MONITOR_SETTINGS["year_from"] = data.get("year_from", 1990)
+    MONITOR_SETTINGS["year_to"] = data.get("year_to", 2026)
+    MONITOR_SETTINGS["region"] = data.get("region")
+    MONITOR_SETTINGS["mark"] = data.get("mark")
+    MONITOR_SETTINGS["model"] = data.get("model")
+    MONITOR_SETTINGS["enabled"] = data.get("enabled", True)
+
+    return jsonify({
+        "status": "ok",
+        "settings": MONITOR_SETTINGS
+    })@app.route("/routes")
 def routes():
     return jsonify(
         [str(x) for x in app.url_map.iter_rules()]

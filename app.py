@@ -422,7 +422,8 @@ def save_monitor_settings():
     return jsonify({
         "status": "ok",
         "settings": MONITOR_SETTINGS
-    })@app.route("/routes")
+    })
+    @app.route("/routes")
 def routes():
     return jsonify(
         [str(x) for x in app.url_map.iter_rules()]

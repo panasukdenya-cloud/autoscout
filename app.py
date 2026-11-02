@@ -3,8 +3,8 @@ import os
 import time
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-app = Flask(__name__)
+impotr sqlite3
+app = Flask(__name__) 
 
 RIA_API_KEY = os.environ.get("RIA_API_KEY")
 RIA_BASE = "https://developers.ria.com"
